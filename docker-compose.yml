@@ -1,0 +1,19 @@
+services:
+  puzzledex:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: puzzledex
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATA_DIR=/data
+      - TZ=Europe/Paris
+    volumes:
+      - puzzledex_data:/data
+
+volumes:
+  puzzledex_data:
+    driver: local

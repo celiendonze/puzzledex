@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PuzzleDex - Style 2 : Nocturne Moderne</title>
+  <style>
+    :root {
+      --bg-main: #0B0F19;
+      --bg-surface: #141C2E;
+      --bg-card: #182238;
+      --bg-subtle: #1E2B45;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --primary: #6366F1;
+      --primary-hover: #4F46E5;
+      --accent-green: #10B981;
+      --accent-green-glow: rgba(16, 185, 129, 0.2);
+      --accent-amber: #F59E0B;
+      --accent-cyan: #06B6D4;
+      --border: #26354D;
+      --border-bright: #3B4E6C;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* En-tête */
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+      text-decoration: none;
+    }
+    .logo span.badge {
+      background: var(--primary);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: white;
+    }
+    .nav-links {
+      display: flex;
+      gap: 6px;
+    }
+    .nav-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { color: white; background: var(--bg-subtle); }
+    .nav-btn.active {
+      background: var(--bg-subtle);
+      color: white;
+      border-color: var(--border-bright);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .timer-pill {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 12px var(--accent-green-glow);
+    }
+    .pulsing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+    }
+    .btn-new {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-new:hover { background: var(--primary-hover); }
+
+    /* Sélecteur de vue */
+    .view-switcher {
+      max-width: 1240px;
+      margin: 20px auto 0;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tabs {
+      display: inline-flex;
+      background: var(--bg-surface);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .tab {
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .tab.active {
+      background: var(--bg-subtle);
+      color: white;
+      border: 1px solid var(--border-bright);
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 20px auto;
+      padding: 0 24px;
+    }
+
+    /* Barre d'outils */
+    .toolbar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search-input {
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-main);
+      color: white;
+      font-size: 0.9rem;
+      min-width: 280px;
+    }
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg-main);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip:hover { border-color: var(--border-bright); color: white; }
+    .chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Grille de cartes */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+    }
+    .card-img {
+      height: 180px;
+      background: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .card-badge-pieces {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .card-badge-status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .status-in_progress { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+    .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .status-in_stash { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); border: 1px solid var(--border-bright); }
+    .status-wishlist { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+
+    .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 6px;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+    }
+    .card-brand {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .card-stats {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .best-time {
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    .btn-chrono-mini {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-bright);
+      color: var(--accent-green);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+
+    /* Vue Fiche & Chrono */
+    .detail-view { display: none; }
+    .detail-view.active {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 32px;
+    }
+    @media (max-width: 900px) {
+      .detail-view.active { grid-template-columns: 1fr; }
+    }
+
+    .detail-main {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+    .detail-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 4px;
+    }
+    .detail-brand {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .btn-restart {
+      background: var(--bg-subtle);
+      border: 1px solid var(--primary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-restart:hover { background: var(--primary); }
+
+    /* Chronomètre Sombre & Émeraude */
+    .timer-hero {
+      background: #0D1322;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      padding: 28px;
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .timer-badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid var(--accent-amber);
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .timer-digits {
+      font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;
+      font-size: 4.2rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--accent-green);
+      text-shadow: 0 0 24px var(--accent-green-glow);
+      margin-bottom: 20px;
+    }
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-timer-primary {
+      background: var(--accent-amber);
+      color: #0F172A;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-timer-secondary {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-bright);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-timer-finish {
+      background: var(--accent-green);
+      color: #0F172A;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .wakelock-bar {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Historique des Réalisations */
+    .runs-section { margin-top: 32px; }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .run-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-surface);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .run-header {
+      padding: 14px 18px;
+      background: var(--bg-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .run-body {
+      padding: 16px 18px;
+      font-size: 0.9rem;
+    }
+    .session-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .session-item:last-child { border-bottom: none; }
+
+    /* Volet latéral */
+    .detail-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .side-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .meta-list {
+      display: grid;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+    }
+    .meta-label { color: var(--text-muted); }
+    .meta-val { font-weight: 600; color: white; }
+  </style>
+</head>
+<body>
+
+  <!-- En-tête -->
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        🧩 PUZZLEDEX <span class="badge">LAN</span>
+      </a>
+      <nav class="nav-links">
+        <button class="nav-btn active">Catalogue</button>
+        <button class="nav-btn">Statistiques</button>
+        <button class="nav-btn">Sauvegarde</button>
+      </nav>
+      <div class="header-actions">
+        <div class="timer-pill">
+          <div class="pulsing-dot"></div>
+          01:45:22
+        </div>
+        <button class="btn-new">+ Nouveau puzzle</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sélecteur de vue -->
+  <div class="view-switcher">
+    <div style="font-size: 0.9rem; color: var(--text-muted);">
+      Proposition 2 : <strong>Nocturne Moderne</strong> (Mode sombre OLED, touches émeraude, contraste élevé)
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchView('catalog')">Vue Catalogue</button>
+      <button class="tab" onclick="switchView('detail')">Vue Fiche & Chronomètre</button>
+    </div>
+  </div>
+
+  <main class="container">
+
+    <!-- VUE 1 : CATALOGUE -->
+    <div id="view-catalog">
+      <div class="toolbar">
+        <input type="text" class="search-input" placeholder="🔍 Rechercher un puzzle, une marque...">
+        <div class="filter-chips">
+          <button class="chip active">Tous (12)</button>
+          <button class="chip">En cours (2)</button>
+          <button class="chip">Dans la réserve (5)</button>
+          <button class="chip">Terminé (4)</button>
+          <button class="chip">Liste d'envies (1)</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Puzzle 1 -->
+        <div class="card" onclick="switchView('detail')" style="cursor: pointer;">
+          <div class="card-img" style="background: radial-gradient(circle, #1e3a8a, #0f172a);">
+            <span class="card-badge-pieces">1 000 pièces</span>
+            <span class="card-badge-status status-in_progress">En cours (Run #2)</span>
+            <div style="font-size: 3rem;">🌌</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">La Nuit Étoilée</div>
+            <div class="card-brand">Eurographics • 48 x 68 cm</div>
+            <div class="card-stats">
+              <span class="best-time">🏆 4h 15m</span>
+              <button class="btn-chrono-mini">⏱️ 01:45:22</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Puzzle 2 -->
+        <div class="card">
+          <div class="card-img" style="background: radial-gradient(circle, #78350f, #1c1917);">
+            <span class="card-badge-pieces">1 500 pièces</span>
+            <span class="card-badge-status status-completed">Terminé</span>
+            <div style="font-size: 3rem;">🍂</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Reflets d'Automne</div>
+            <div class="card-brand">Ravensburger • 80 x 60 cm</div>
+            <div class="card-stats">
+              <span class="best-time">🏆 6h 30m</span>
+              <span style="color: var(--text-dim); font-size: 0.8rem;">1 réalisation</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Puzzle 3 -->
+        <div class="card">
+          <div class="card-img" style="background: radial-gradient(circle, #334155, #0f172a);">
+            <span class="card-badge-pieces">2 000 pièces</span>
+            <span class="card-badge-status status-in_stash">Dans la réserve</span>
+            <div style="font-size: 3rem;">🗺️</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Planisphère Ancien</div>
+            <div class="card-brand">Clementoni • 98 x 67 cm</div>
+            <div class="card-stats">
+              <span style="color: var(--text-dim);">Non commencé</span>
+              <button class="btn-chrono-mini" style="color: var(--text-muted);">Démarrer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Puzzle 4 -->
+        <div class="card">
+          <div class="card-img" style="background: radial-gradient(circle, #831843, #18181b);">
+            <span class="card-badge-pieces">500 pièces</span>
+            <span class="card-badge-status status-wishlist">Liste d'envies</span>
+            <div style="font-size: 3rem;">🌸</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Jardin Japonais</div>
+            <div class="card-brand">Galison • 51 x 51 cm</div>
+            <div class="card-stats">
+              <span style="color: var(--text-dim);">À acheter</span>
+              <span>⭐⭐⭐⭐</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE 2 : FICHE & CHRONO -->
+    <div id="view-detail" class="detail-view">
+      <div class="detail-main">
+        <div class="detail-header">
+          <div>
+            <h1 class="detail-title">La Nuit Étoilée</h1>
+            <p class="detail-brand">Eurographics • 1 000 pièces • Format 48 x 68 cm</p>
+          </div>
+          <button class="btn-restart">+ Recommencer ce puzzle</button>
+        </div>
+
+        <!-- Chronomètre -->
+        <div class="timer-hero">
+          <div class="timer-badge">Réalisation #2 en cours</div>
+          <div class="timer-digits">01:45:22</div>
+          <div class="timer-controls">
+            <button class="btn-timer-primary">⏸️ Pause</button>
+            <button class="btn-timer-secondary">💾 Enregistrer la session</button>
+            <button class="btn-timer-finish">🏁 Terminer l'assemblage</button>
+          </div>
+          <div class="wakelock-bar">
+            <input type="checkbox" id="wake2" checked>
+            <label for="wake2">Empêcher la mise en veille de l'écran pendant le chronométrage</label>
+          </div>
+        </div>
+
+        <!-- Historique des réalisations -->
+        <div class="runs-section">
+          <div class="section-title">
+            <span>Historique des réalisations (2)</span>
+            <span style="font-size: 0.9rem; color: var(--accent-cyan);">🏆 Record : 4h 15m (Run #1)</span>
+          </div>
+
+          <!-- Run 2 -->
+          <div class="run-card" style="border-color: var(--accent-amber);">
+            <div class="run-header">
+              <span>Réalisation #2 (Actuelle)</span>
+              <span style="color: var(--accent-amber);">⏱️ 01:45:22 • En cours</span>
+            </div>
+            <div class="run-body">
+              <div class="session-item">
+                <span>Session 2 • Aujourd'hui à 09:30</span>
+                <span>00:45:10 (Le village et cyprès)</span>
+              </div>
+              <div class="session-item">
+                <span>Session 1 • Hier à 20:15</span>
+                <span>01:00:12 (Bordures et ciel tourbillon)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Run 1 -->
+          <div class="run-card">
+            <div class="run-header">
+              <span>Réalisation #1 🏆 (Record)</span>
+              <span style="color: var(--accent-green);">✓ 04:15:00 • Terminé le 14/01/2026</span>
+            </div>
+            <div class="run-body">
+              <p style="margin-bottom: 10px; color: var(--text-dim); font-style: italic;">
+                "Premier assemblage en solitaire. Le ciel était corsé mais magique."
+              </p>
+              <div class="session-item">
+                <span>Session 3 • 14/01/2026</span>
+                <span>01:30:00</span>
+              </div>
+              <div class="session-item">
+                <span>Session 2 • 12/01/2026</span>
+                <span>01:45:00</span>
+              </div>
+              <div class="session-item">
+                <span>Session 1 • 10/01/2026</span>
+                <span>01:00:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volet latéral -->
+      <aside class="detail-sidebar">
+        <div class="side-box">
+          <div style="height: 220px; background: radial-gradient(circle, #1e3a8a, #0f172a); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 4rem;">
+            🌌
+          </div>
+          <button style="width: 100%; margin-top: 12px; padding: 8px; border: 1px dashed var(--border-bright); background: none; color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+            + Téléverser des photos
+          </button>
+        </div>
+
+        <div class="side-box">
+          <h3 style="font-size: 1.1rem; margin-bottom: 14px;">Informations</h3>
+          <div class="meta-list">
+            <div class="meta-row">
+              <span class="meta-label">Pièces</span>
+              <span class="meta-val">1 000</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Dimensions</span>
+              <span class="meta-val">48 x 68 cm</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Difficulté</span>
+              <span class="meta-val">⭐⭐⭐⭐☆ (4/5)</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Note perso</span>
+              <span class="meta-val">⭐⭐⭐⭐⭐ (5/5)</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Pièces manquantes</span>
+              <span class="meta-val" style="color: var(--accent-green);">0 (Complet)</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+  </main>
+
+  <script>
+    function switchView(view) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      if (view === 'catalog') {
+        document.querySelector('.tab:nth-child(1)').classList.add('active');
+        document.getElementById('view-catalog').style.display = 'block';
+        document.getElementById('view-detail').classList.remove('active');
+      } else {
+        document.querySelector('.tab:nth-child(2)').classList.add('active');
+        document.getElementById('view-catalog').style.display = 'none';
+        document.getElementById('view-detail').classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

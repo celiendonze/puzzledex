@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PuzzleDex - Propositions de Design</title>
+  <style>
+    :root {
+      --bg: #0F172A;
+      --card-bg: #1E293B;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --accent: #38BDF8;
+      --border: #334155;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      background: linear-gradient(to right, #38BDF8, #818CF8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+    .card-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-1 { background: #F7EAE3; color: #BC5A36; }
+    .badge-2 { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+    .badge-3 { background: #EFF6FF; color: #2563EB; }
+
+    .card h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      flex-grow: 1;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .btn {
+      flex: 1;
+      text-align: center;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #0284C7;
+      color: white;
+    }
+    .btn-primary:hover { background: #0369A1; }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+
+    /* Zone Aperçu Live */
+    .preview-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    .preview-bar {
+      padding: 14px 20px;
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .preview-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .preview-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .preview-tab.active {
+      background: #0284C7;
+      color: white;
+      border-color: #0284C7;
+    }
+    iframe {
+      width: 100%;
+      height: 720px;
+      border: none;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1>🧩 PuzzleDex • Explorateur de Design</h1>
+      <p class="subtitle">
+        Trois approches visuelles concrètes en pur HTML/CSS, conçues pour être confortables sur ordinateur, tablette et smartphone.
+      </p>
+    </header>
+
+    <div class="cards">
+
+      <!-- Proposition 1 -->
+      <div class="card" style="border-color: #BC5A36;">
+        <span class="card-badge badge-1">🏆 Retenu : Option 1</span>
+        <h2>L'Atelier Chaleureux (Jour & Soir)</h2>
+        <p>
+          Palette naturelle inspirée du lin et de la terracotta, typographie artisanale élégante. Intègre désormais un <strong>mode sombre cosy</strong> (« Atelier du Soir », fond espresso et boisé chaud) activable en un clic via le bouton 🌙 Soir / ☀️ Jour.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Tons chauds</span>
+          <span class="tag">Crème & Terracotta</span>
+          <span class="tag">Mode Soir Boisé</span>
+          <span class="tag">Bascule 🌙/☀️</span>
+        </div>
+          <span class="tag">Sérénité</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="setFrame('style-1-atelier.html', this)">Aperçu intégré</button>
+          <a class="btn btn-secondary" href="style-1-atelier.html" target="_blank">Plein écran ↗</a>
+        </div>
+      </div>
+
+      <!-- Proposition 2 -->
+      <div class="card">
+        <span class="card-badge badge-2">Option 2</span>
+        <h2>Nocturne Moderne</h2>
+        <p>
+          Thème sombre à fort contraste (ardoise profonde, vert émeraude fluorescent, typographie monospace). Idéal pour les séances de puzzle en soirée ou sur écran OLED sans fatigue oculaire.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Mode Sombre OLED</span>
+          <span class="tag">Chrono Fluorescent</span>
+          <span class="tag">Fort contraste</span>
+          <span class="tag">Repos visuel</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="setFrame('style-2-nocturne.html', this)">Aperçu intégré</button>
+          <a class="btn btn-secondary" href="style-2-nocturne.html" target="_blank">Plein écran ↗</a>
+        </div>
+      </div>
+
+      <!-- Proposition 3 -->
+      <div class="card">
+        <span class="card-badge badge-3">Option 3</span>
+        <h2>Nordique Épuré & Lumineux</h2>
+        <p>
+          Design épuré et lumineux d'inspiration scandinave. Grands arrondis modernes, accents bleu ciel et ambre, interface aérée et très lisible.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Clair & Lumineux</span>
+          <span class="tag">Bleu ciel & Ambre</span>
+          <span class="tag">Minimalisme</span>
+          <span class="tag">Arrondis doux</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="setFrame('style-3-nordique.html', this)">Aperçu intégré</button>
+          <a class="btn btn-secondary" href="style-3-nordique.html" target="_blank">Plein écran ↗</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Aperçu interactif dans la page -->
+    <div class="preview-section">
+      <div class="preview-bar">
+        <span style="font-weight: 700; font-size: 0.95rem;">📱 Aperçu interactif (cliquez sur les onglets internes pour tester Catalogue vs Fiche/Chronomètre)</span>
+        <div class="preview-tabs">
+          <button class="preview-tab active" id="btn-tab-1" onclick="loadTab('style-1-atelier.html', 1)">1. L'Atelier (Jour / Soir)</button>
+          <button class="preview-tab" id="btn-tab-2" onclick="loadTab('style-2-nocturne.html', 2)">2. Nocturne</button>
+          <button class="preview-tab" id="btn-tab-3" onclick="loadTab('style-3-nordique.html', 3)">3. Nordique</button>
+        </div>
+      </div>
+      <iframe id="preview-frame" src="style-1-atelier.html"></iframe>
+    </div>
+
+  </div>
+
+  <script>
+    function loadTab(url, tabIndex) {
+      document.getElementById('preview-frame').src = url;
+      document.querySelectorAll('.preview-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-tab-' + tabIndex).classList.add('active');
+    }
+    function setFrame(url, btn) {
+      document.getElementById('preview-frame').src = url;
+      const index = url.includes('1') ? 1 : url.includes('2') ? 2 : 3;
+      document.querySelectorAll('.preview-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-tab-' + index).classList.add('active');
+      document.querySelector('.preview-section').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

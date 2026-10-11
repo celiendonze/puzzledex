@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Mode Clair : L'Atelier de Jour */
+  --bg-main: #F7F4EE;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #EFE9DE;
+  --text-main: #2C2621;
+  --text-muted: #72685E;
+  --primary: #BC5A36;
+  --primary-hover: #A04A2A;
+  --primary-light: #F7EAE3;
+  --accent-green: #3F6C51;
+  --accent-green-light: #E7EFEA;
+  --accent-amber: #C97D29;
+  --accent-amber-light: #FBF1E2;
+  --border: #DFD7CA;
+  --border-dark: #C9BFAF;
+  --shadow: 0 4px 16px rgba(44, 38, 33, 0.06);
+}
+
+.dark {
+  /* Mode Sombre : L'Atelier du Soir */
+  --bg-main: #181512;
+  --bg-surface: #231D19;
+  --bg-subtle: #2E2621;
+  --text-main: #F4EFEB;
+  --text-muted: #A89D91;
+  --primary: #E06D44;
+  --primary-hover: #F27F56;
+  --primary-light: #3D2318;
+  --accent-green: #5CA077;
+  --accent-green-light: #1D2E23;
+  --accent-amber: #E29840;
+  --accent-amber-light: #382715;
+  --border: #3A312A;
+  --border-dark: #52453B;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}

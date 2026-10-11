@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PuzzleDex - Style 1 : L'Atelier Chaleureux</title>
+  <style>
+    :root {
+      --bg-main: #F7F4EE;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #EFE9DE;
+      --text-main: #2C2621;
+      --text-muted: #72685E;
+      --primary: #BC5A36;
+      --primary-hover: #A04A2A;
+      --primary-light: #F7EAE3;
+      --accent-green: #3F6C51;
+      --accent-green-light: #E7EFEA;
+      --accent-amber: #C97D29;
+      --accent-amber-light: #FBF1E2;
+      --accent-blue: #3E6389;
+      --accent-blue-light: #E7EEF5;
+      --border: #DFD7CA;
+      --border-dark: #C9BFAF;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(44, 38, 33, 0.06);
+    }
+
+    /* Thème Sombre : L'Atelier du Soir (Même ADN chaleureux, boisé, lin et terracotta) */
+    body.theme-dark {
+      --bg-main: #181512;
+      --bg-surface: #231D19;
+      --bg-subtle: #2E2621;
+      --text-main: #F4EFEB;
+      --text-muted: #A89D91;
+      --primary: #E06D44;
+      --primary-hover: #F27F56;
+      --primary-light: #3D2318;
+      --accent-green: #5CA077;
+      --accent-green-light: #1D2E23;
+      --accent-amber: #E29840;
+      --accent-amber-light: #382715;
+      --accent-blue: #6A93BA;
+      --accent-blue-light: #1B2939;
+      --border: #3A312A;
+      --border-dark: #52453B;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 60px;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    header, .card, .toolbar, .detail-main, .side-box, .timer-hero, .run-card, .search-input {
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* En-tête */
+    header {
+      background: var(--bg-surface);
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .nav-btn.active {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      border-color: var(--border);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .timer-pill {
+      background: var(--accent-green-light);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+    .btn-new {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Sélecteur de vue (Simulation) */
+    .view-switcher {
+      max-width: 1200px;
+      margin: 20px auto 0;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tabs {
+      display: inline-flex;
+      background: var(--bg-subtle);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .tab {
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .tab.active {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Conteneur */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 24px;
+    }
+
+    /* Barre d'outils / Filtres */
+    .toolbar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search-input {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      min-width: 260px;
+    }
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Grille de puzzles */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(44, 38, 33, 0.1);
+    }
+    .card-img {
+      height: 180px;
+      background: #E8DFD1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-badge-pieces {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(44, 38, 33, 0.85);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .card-badge-status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .status-in_progress { background: var(--accent-amber-light); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+    .status-completed { background: var(--accent-green-light); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .status-in_stash { background: var(--bg-subtle); color: var(--text-muted); border: 1px solid var(--border-dark); }
+    .status-wishlist { background: var(--accent-blue-light); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+
+    .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 8px;
+    }
+    .card-title {
+      font-family: Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+    .card-brand {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .card-stats {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--bg-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .best-time {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .btn-chrono-mini {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* Vue Fiche Détail (Masquée ou affichée via onglets) */
+    .detail-view {
+      display: none;
+    }
+    .detail-view.active {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 32px;
+    }
+    @media (max-width: 900px) {
+      .detail-view.active { grid-template-columns: 1fr; }
+    }
+
+    .detail-main {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+    .detail-title {
+      font-family: Georgia, serif;
+      font-size: 1.8rem;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .detail-brand {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+    .btn-restart {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-dark);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Bloc Chronomètre Central */
+    .timer-hero {
+      background: var(--bg-subtle);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .timer-badge {
+      display: inline-block;
+      background: var(--accent-amber-light);
+      color: var(--accent-amber);
+      border: 1px solid var(--accent-amber);
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .timer-digits {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 3.8rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: var(--text-main);
+      margin-bottom: 16px;
+    }
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-timer-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-timer-secondary {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dark);
+      color: var(--text-main);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-timer-finish {
+      background: var(--accent-green);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .wakelock-bar {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Historique des Réalisations */
+    .runs-section {
+      margin-top: 32px;
+    }
+    .section-title {
+      font-family: Georgia, serif;
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .run-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-surface);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .run-header {
+      padding: 14px 18px;
+      background: var(--bg-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+    .run-body {
+      padding: 16px 18px;
+      font-size: 0.9rem;
+    }
+    .session-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dotted var(--border);
+      color: var(--text-muted);
+    }
+    .session-item:last-child { border-bottom: none; }
+
+    /* Volet latéral (Sidebar) */
+    .detail-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .side-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .meta-list {
+      display: grid;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--bg-subtle);
+      padding-bottom: 6px;
+    }
+    .meta-label { color: var(--text-muted); }
+    .meta-val { font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- En-tête -->
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span>🧩</span> PuzzleDex
+      </a>
+      <nav class="nav-links">
+        <button class="nav-btn active">Catalogue</button>
+        <button class="nav-btn">Statistiques</button>
+        <button class="nav-btn">Sauvegarde</button>
+      </nav>
+      <div class="header-actions">
+        <button id="theme-btn" class="nav-btn" onclick="toggleTheme()" style="border: 1px solid var(--border); display: flex; align-items: center; gap: 6px; cursor: pointer;" title="Basculer entre le mode Jour et le mode Soir">
+          <span id="theme-icon">🌙</span> <span id="theme-label">Soir</span>
+        </button>
+        <div class="timer-pill">
+          <span>⏱️</span> 01:45:22 en cours
+        </div>
+        <button class="btn-new">+ Nouveau puzzle</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sélecteur interactif de vue pour la maquette -->
+  <div class="view-switcher">
+    <div style="font-size: 0.9rem; color: var(--text-muted);">
+      Proposition 1 : <strong>L'Atelier Chaleureux</strong> (Tons boisés, lin, typographie feutrée)
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchView('catalog')">Vue Catalogue</button>
+      <button class="tab" onclick="switchView('detail')">Vue Fiche & Chronomètre</button>
+    </div>
+  </div>
+
+  <main class="container">
+
+    <!-- VUE 1 : CATALOGUE -->
+    <div id="view-catalog" class="catalog-view">
+      <div class="toolbar">
+        <input type="text" class="search-input" placeholder="🔍 Rechercher un puzzle, une marque...">
+        <div class="filter-chips">
+          <button class="chip active">Tous (12)</button>
+          <button class="chip">En cours (2)</button>
+          <button class="chip">Dans la réserve (5)</button>
+          <button class="chip">Terminé (4)</button>
+          <button class="chip">Liste d'envies (1)</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Puzzle 1 -->
+        <div class="card" onclick="switchView('detail')" style="cursor: pointer;">
+          <div class="card-img" style="background: linear-gradient(135deg, #2b3a4a, #495e74);">
+            <span class="card-badge-pieces">1 000 pièces</span>
+            <span class="card-badge-status status-in_progress">En cours (Run #2)</span>
+            <div style="color: rgba(255,255,255,0.7); font-size: 3rem;">🌌</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">La Nuit Étoilée</div>
+            <div class="card-brand">Eurographics • 48 x 68 cm</div>
+            <div class="card-stats">
+              <span class="best-time">🏆 Record : 4h 15m</span>
+              <button class="btn-chrono-mini">⏱️ 01:45:22</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Puzzle 2 -->
+        <div class="card">
+          <div class="card-img" style="background: linear-gradient(135deg, #533E2D, #8C6A48);">
+            <span class="card-badge-pieces">1 500 pièces</span>
+            <span class="card-badge-status status-completed">Terminé</span>
+            <div style="color: rgba(255,255,255,0.7); font-size: 3rem;">🍂</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Reflets d'Automne</div>
+            <div class="card-brand">Ravensburger • 80 x 60 cm</div>
+            <div class="card-stats">
+              <span class="best-time">🏆 6h 30m (1 run)</span>
+              <span style="color: var(--text-muted); font-size: 0.8rem;">Fini le 12/09/2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Puzzle 3 -->
+        <div class="card">
+          <div class="card-img" style="background: linear-gradient(135deg, #7A6953, #A99B87);">
+            <span class="card-badge-pieces">2 000 pièces</span>
+            <span class="card-badge-status status-in_stash">Dans la réserve</span>
+            <div style="color: rgba(255,255,255,0.7); font-size: 3rem;">🗺️</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Planisphère Ancien</div>
+            <div class="card-brand">Clementoni • 98 x 67 cm</div>
+            <div class="card-stats">
+              <span style="color: var(--text-muted);">Non commencé</span>
+              <button class="btn-chrono-mini">Démarrer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Puzzle 4 -->
+        <div class="card">
+          <div class="card-img" style="background: linear-gradient(135deg, #B24C53, #DE7E73);">
+            <span class="card-badge-pieces">500 pièces</span>
+            <span class="card-badge-status status-wishlist">Liste d'envies</span>
+            <div style="color: rgba(255,255,255,0.7); font-size: 3rem;">🌸</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Jardin Japonais</div>
+            <div class="card-brand">Galison • 51 x 51 cm</div>
+            <div class="card-stats">
+              <span style="color: var(--text-muted);">À acheter</span>
+              <span>⭐⭐⭐⭐</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE 2 : FICHE & CHRONOMETRE -->
+    <div id="view-detail" class="detail-view">
+      <div class="detail-main">
+        <div class="detail-header">
+          <div>
+            <h1 class="detail-title">La Nuit Étoilée</h1>
+            <p class="detail-brand">Eurographics • 1 000 pièces • Format 48 x 68 cm</p>
+          </div>
+          <button class="btn-restart">+ Recommencer ce puzzle</button>
+        </div>
+
+        <!-- Chronomètre Actif -->
+        <div class="timer-hero">
+          <div class="timer-badge">Réalisation #2 en cours</div>
+          <div class="timer-digits">01:45:22</div>
+          <div class="timer-controls">
+            <button class="btn-timer-primary">⏸️ Pause</button>
+            <button class="btn-timer-secondary">💾 Enregistrer la session</button>
+            <button class="btn-timer-finish">🏁 Terminer l'assemblage</button>
+          </div>
+          <div class="wakelock-bar">
+            <input type="checkbox" id="wake1" checked>
+            <label for="wake1">Garder l'écran allumé pendant le chronométrage</label>
+          </div>
+        </div>
+
+        <!-- Historique des réalisations -->
+        <div class="runs-section">
+          <div class="section-title">
+            <span>Historique des réalisations (2)</span>
+            <span style="font-size: 0.85rem; color: var(--primary);">🏆 Record : 4h 15m (Run #1)</span>
+          </div>
+
+          <!-- Run 2 (en cours) -->
+          <div class="run-card" style="border-color: var(--accent-amber);">
+            <div class="run-header" style="background: var(--accent-amber-light);">
+              <span>Réalisation #2 (Actuelle)</span>
+              <span style="color: var(--accent-amber);">⏱️ 1h 45m (2 sessions) • En cours</span>
+            </div>
+            <div class="run-body">
+              <div class="session-item">
+                <span>Session 2 • Aujourd'hui à 09:30</span>
+                <span><strong>0h 45m</strong> (Le village et cyprès)</span>
+              </div>
+              <div class="session-item">
+                <span>Session 1 • Hier à 20:15</span>
+                <span><strong>1h 00m</strong> (Bordures et ciel tourbillon)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Run 1 (terminé) -->
+          <div class="run-card">
+            <div class="run-header">
+              <span>Réalisation #1 🏆 (Record)</span>
+              <span style="color: var(--accent-green);">✓ 4h 15m (3 sessions) • Terminé le 14/01/2026</span>
+            </div>
+            <div class="run-body">
+              <p style="margin-bottom: 8px; color: var(--text-muted); font-style: italic;">
+                "Premier assemblage en solitaire. Le ciel était corsé mais magique."
+              </p>
+              <div class="session-item">
+                <span>Session 3 • 14/01/2026</span>
+                <span><strong>1h 30m</strong></span>
+              </div>
+              <div class="session-item">
+                <span>Session 2 • 12/01/2026</span>
+                <span><strong>1h 45m</strong></span>
+              </div>
+              <div class="session-item">
+                <span>Session 1 • 10/01/2026</span>
+                <span><strong>1h 00m</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volet latéral -->
+      <aside class="detail-sidebar">
+        <div class="side-box">
+          <div style="height: 220px; background: linear-gradient(135deg, #2b3a4a, #495e74); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: white;">
+            🌌
+          </div>
+          <button style="width: 100%; margin-top: 12px; padding: 8px; border: 1px dashed var(--border-dark); background: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+            + Ajouter des photos
+          </button>
+        </div>
+
+        <div class="side-box">
+          <h3 style="font-family: Georgia, serif; margin-bottom: 14px;">Informations</h3>
+          <div class="meta-list">
+            <div class="meta-row">
+              <span class="meta-label">Pièces</span>
+              <span class="meta-val">1 000</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Dimensions</span>
+              <span class="meta-val">48 x 68 cm</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Difficulté</span>
+              <span class="meta-val">⭐⭐⭐⭐☆ (4/5)</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Note perso</span>
+              <span class="meta-val">⭐⭐⭐⭐⭐ (5/5)</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Pièces manquantes</span>
+              <span class="meta-val" style="color: var(--accent-green);">0 (Complet)</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+  </main>
+
+  <script>
+    function switchView(view) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      if (view === 'catalog') {
+        document.querySelector('.tab:nth-child(1)').classList.add('active');
+        document.getElementById('view-catalog').style.display = 'block';
+        document.getElementById('view-detail').classList.remove('active');
+      } else {
+        document.querySelector('.tab:nth-child(2)').classList.add('active');
+        document.getElementById('view-catalog').style.display = 'none';
+        document.getElementById('view-detail').classList.add('active');
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('theme-dark');
+      const icon = document.getElementById('theme-icon');
+      const label = document.getElementById('theme-label');
+      if (isDark) {
+        icon.textContent = '☀️';
+        label.textContent = 'Jour';
+      } else {
+        icon.textContent = '🌙';
+        label.textContent = 'Soir';
+      }
+    }
+  </script>
+</body>
+</html>
