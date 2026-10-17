@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Puzzle, PuzzleAssembly
-from app.schemas import AssemblyCreate, AssemblyUpdate, AssemblyRead, AssemblyDetailRead
+from app.models import Puzzle, PuzzleAssembly, PuzzleSession
+from app.schemas import AssemblyCreate, AssemblyUpdate, AssemblyRead, AssemblyDetailRead, ManualTimeCreate
 
 router = APIRouter(tags=["Assemblages"])
 
@@ -57,6 +57,66 @@ def start_new_assembly(puzzle_id: str, payload: AssemblyCreate, db: Session = De
     db.commit()
     db.refresh(new_assembly)
     return format_assembly(new_assembly)
+
+@router.post("/api/puzzles/{puzzle_id}/manual-time", response_model=AssemblyDetailRead, status_code=status.HTTP_201_CREATED)
+def add_manual_time(puzzle_id: str, payload: ManualTimeCreate, db: Session = Depends(get_db)):
+    """Ajoute manuellement un temps à un puzzle (soit comme nouvel assemblage terminé, soit à un run existant)."""
+    puzzle = db.query(Puzzle).filter(Puzzle.id == puzzle_id).first()
+    if not puzzle:
+        raise HTTPException(status_code=404, detail="Puzzle non trouvé")
+
+    now = datetime.utcnow()
+    started = payload.started_at or now
+
+    if payload.assembly_id:
+        target_assembly = db.query(PuzzleAssembly).filter(
+            PuzzleAssembly.id == payload.assembly_id,
+            PuzzleAssembly.puzzle_id == puzzle_id
+        ).first()
+        if not target_assembly:
+            raise HTTPException(status_code=404, detail="Réalisation spécifiée non trouvée")
+    else:
+        # Créer un nouvel assemblage
+        next_run_number = len(puzzle.assemblies) + 1
+        target_assembly = PuzzleAssembly(
+            puzzle_id=puzzle.id,
+            run_number=next_run_number,
+            status="completed" if payload.completed else "in_progress",
+            started_at=started,
+            completed_at=started if payload.completed else None,
+            notes=payload.notes,
+        )
+        db.add(target_assembly)
+        db.flush()
+
+    # Créer la session pour cette durée
+    session = PuzzleSession(
+        puzzle_id=puzzle.id,
+        assembly_id=target_assembly.id,
+        started_at=started,
+        ended_at=started,
+        duration_seconds=payload.duration_seconds,
+        notes=payload.notes,
+    )
+    db.add(session)
+
+    if payload.completed:
+        target_assembly.status = "completed"
+        if not target_assembly.completed_at:
+            target_assembly.completed_at = started
+        other_active = any(a.id != target_assembly.id and a.status == "in_progress" for a in puzzle.assemblies)
+        if not other_active:
+            puzzle.status = "completed"
+    else:
+        target_assembly.status = "in_progress"
+        puzzle.status = "in_progress"
+
+    target_assembly.updated_at = now
+    puzzle.updated_at = now
+
+    db.commit()
+    db.refresh(target_assembly)
+    return format_assembly(target_assembly)
 
 @router.get("/api/puzzles/{puzzle_id}/assemblies", response_model=List[AssemblyRead])
 def get_puzzle_assemblies(puzzle_id: str, db: Session = Depends(get_db)):

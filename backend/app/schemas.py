@@ -87,12 +87,19 @@ class AssemblyRead(AssemblyBase):
 class AssemblyDetailRead(AssemblyRead):
     sessions: List[SessionRead] = []
 
+class ManualTimeCreate(BaseModel):
+    duration_seconds: int = Field(gt=0)
+    completed: bool = True  # True: assemblé avec succès, False: session en cours
+    started_at: Optional[datetime] = None
+    notes: Optional[str] = None
+    assembly_id: Optional[str] = None  # Si None, crée un nouvel assemblage
+
 # --- PUZZLES ---
 class PuzzleBase(BaseModel):
     title: str
     brand: Optional[str] = None
     piece_count: int = Field(gt=0)
-    status: str = "in_stash"  # wishlist, in_stash, in_progress, completed, archived
+    status: str = "in_stash"  # wishlist, in_stash, in_progress, completed, archived, borrowed
     dimensions: Optional[str] = None
     difficulty: Optional[int] = Field(default=None, ge=1, le=5)
     rating: Optional[int] = Field(default=None, ge=1, le=5)
@@ -101,6 +108,7 @@ class PuzzleBase(BaseModel):
 
 class PuzzleCreate(PuzzleBase):
     tags: Optional[List[str]] = []  # Liste de noms de tags
+    initial_duration_seconds: Optional[int] = None
 
 class PuzzleUpdate(BaseModel):
     title: Optional[str] = None
@@ -146,16 +154,32 @@ class PuzzleDetailRead(PuzzleListItemRead):
     assemblies: List[AssemblyDetailRead] = []
 
 # --- STATS ---
+class PaceTierDetail(BaseModel):
+    tier: str
+    completed_count: int
+    total_pieces: int
+    total_duration_seconds: int
+    average_pieces_per_minute: float
+    average_pieces_per_hour: float
+    average_duration_seconds: int
+    fastest_run: Optional[dict] = None
+
 class StatsRead(BaseModel):
     total_puzzles: int
     completed_puzzles: int
     in_progress_puzzles: int
     in_stash_puzzles: int
     wishlist_puzzles: int
+    borrowed_puzzles: int = 0
+    total_pieces_in_collection: int = 0
+    collection_puzzles_count: int = 0
     total_pieces_completed: int
     total_time_spent_seconds: int
+    average_pieces_per_minute: float = 0.0
     average_pieces_per_hour: float
     total_assemblies_count: int
     fastest_1000_puzzle: Optional[dict] = None
     top_brands: List[dict] = []
     piece_count_distribution: List[dict] = []
+    pace_by_piece_count: List[PaceTierDetail] = []
+

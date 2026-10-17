@@ -1,215 +1,115 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTimer, formatDigitalTime } from '../context/TimerContext';
-import { Play, Pause, Save, RotateCcw, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { Play, Pause, RotateCcw, CheckCircle2 } from 'lucide-react';
 
-export default function TimerWidget({ puzzle, activeAssembly, onSessionSaved, onFinishAssemblyClick }) {
+export default function TimerWidget({ puzzle, activeAssembly, onFinishClick, onFinishAssemblyClick }) {
+  const handleFinish = onFinishClick || onFinishAssemblyClick;
   const {
-    puzzleId,
-    assemblyId,
-    isRunning,
-    displaySeconds,
+    getPuzzleTimer,
+    startPuzzleTimer,
+    pausePuzzleTimer,
+    resetPuzzleTimer,
     wakeLockEnabled,
     setWakeLockEnabled,
-    startTimer,
-    pauseTimer,
-    resumeTimer,
-    resetTimer,
-    recordAndSaveSession,
   } = useTimer();
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [sessionNote, setSessionNote] = useState('');
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [saveError, setSaveError] = useState('');
-
-  const isCurrentActiveInContext = puzzleId === puzzle.id && assemblyId === activeAssembly?.id;
+  // Récupère l'état du timer pour CE puzzle en mémoire (ou les secondes cumulées de l'assembly comme point de départ)
+  const timerInfo = getPuzzleTimer(puzzle.id, activeAssembly?.total_duration_seconds || 0);
+  const { seconds, isRunning } = timerInfo;
 
   const handleStartOrPause = () => {
-    if (!isCurrentActiveInContext) {
-      startTimer(puzzle.id, puzzle.title, activeAssembly.id);
+    if (isRunning) {
+      pausePuzzleTimer(puzzle.id);
     } else {
-      if (isRunning) {
-        pauseTimer();
-      } else {
-        resumeTimer();
-      }
-    }
-  };
-
-  const handleOpenSaveModal = () => {
-    if (!isCurrentActiveInContext || displaySeconds <= 0) return;
-    pauseTimer();
-    setSessionNote('');
-    setSaveError('');
-    setShowSaveModal(true);
-  };
-
-  const handleConfirmSave = async () => {
-    setIsSaving(true);
-    setSaveError('');
-    try {
-      await recordAndSaveSession(sessionNote);
-      setShowSaveModal(false);
-      if (onSessionSaved) onSessionSaved();
-    } catch (err) {
-      setSaveError(err.message || "Erreur lors de l'enregistrement de la session");
-    } finally {
-      setIsSaving(false);
+      startPuzzleTimer(puzzle.id, activeAssembly.id, seconds);
     }
   };
 
   const handleReset = () => {
-    if (window.confirm("Êtes-vous sûr de vouloir réinitialiser le chronomètre de la session courante ? Ce temps non enregistré sera perdu.")) {
-      resetTimer();
+    if (window.confirm("Voulez-vous réinitialiser le chronomètre de ce puzzle à 00:00:00 ?")) {
+      resetPuzzleTimer(puzzle.id);
     }
   };
 
   return (
-    <>
-      <div className="bg-atelier-subtle border-2 border-atelier-border rounded-2xl p-6 sm:p-8 text-center shadow-xs">
+    <div className="bg-atelier-subtle border-2 border-atelier-border rounded-2xl p-5 sm:p-7 text-center shadow-xs">
+      
+      {/* Badge de la réalisation en cours */}
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-atelier-amberLight text-atelier-amber border border-atelier-amber/40 mb-2 sm:mb-3 shadow-2xs">
+        <span>⚙️</span>
+        <span>Réalisation #{activeAssembly.run_number} en cours</span>
+      </div>
+
+      {/* Grand affichage digital */}
+      <div className="font-mono text-5xl sm:text-6xl font-bold tracking-wider text-atelier-text my-2 sm:my-4 select-none">
+        {formatDigitalTime(seconds)}
+      </div>
+
+      {/* Boutons d'action alignés pour mobile & desktop */}
+      <div className="mt-5 sm:mt-6 max-w-md mx-auto flex flex-col gap-3">
         
-        {/* Badge de la réalisation en cours */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-atelier-amberLight text-atelier-amber border border-atelier-amber/40 mb-3 shadow-2xs">
-          <span>⚙️</span>
-          <span>Réalisation #{activeAssembly.run_number} en cours</span>
-        </div>
-
-        {/* Grand affichage digital */}
-        <div className="font-mono text-4xl sm:text-6xl font-bold tracking-wider text-atelier-text my-2 sm:my-3 select-none">
-          {isCurrentActiveInContext ? formatDigitalTime(displaySeconds) : '00:00:00'}
-        </div>
-
-        {/* Boutons d'action */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-6">
-          
-          {/* Bouton Démarrer / Pause */}
-          <button
-            onClick={handleStartOrPause}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold shadow-sm transition-all transform hover:scale-102 cursor-pointer ${
-              isCurrentActiveInContext && isRunning
-                ? 'bg-amber-500 hover:bg-amber-600 text-stone-900'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-            }`}
-          >
-            {isCurrentActiveInContext && isRunning ? (
-              <>
-                <Pause className="w-5 h-5" />
-                <span>Pause</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5 fill-current" />
-                <span>{isCurrentActiveInContext && displaySeconds > 0 ? 'Reprendre' : 'Démarrer'}</span>
-              </>
-            )}
-          </button>
-
-          {/* Bouton Enregistrer la session */}
-          <button
-            onClick={handleOpenSaveModal}
-            disabled={!isCurrentActiveInContext || displaySeconds === 0}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold bg-atelier-surface border border-atelier-border text-atelier-text hover:bg-atelier-border/40 transition-colors shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            title="Enregistrer le temps écoulé comme une session et l'ajouter au total"
-          >
-            <Save className="w-4 h-4 text-atelier-primary" />
-            <span>Enregistrer la session</span>
-          </button>
-
-          {/* Bouton Réinitialiser session */}
-          {isCurrentActiveInContext && displaySeconds > 0 && (
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 px-3.5 py-3 rounded-xl text-xs font-semibold text-atelier-muted hover:text-atelier-text hover:bg-atelier-border/30 transition-colors"
-              title="Abandonner le temps non enregistré"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Réinitialiser</span>
-            </button>
+        {/* Ligne 1 sur mobile / Colonne 1 sur grand écran : Démarrer / Pause */}
+        <button
+          onClick={handleStartOrPause}
+          className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl text-base font-bold shadow-xs transition-all transform active:scale-98 cursor-pointer ${
+            isRunning
+              ? 'bg-amber-500 hover:bg-amber-600 text-stone-900'
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+          }`}
+        >
+          {isRunning ? (
+            <>
+              <Pause className="w-5 h-5 fill-current" />
+              <span>Pause</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-5 h-5 fill-current" />
+              <span>{seconds > 0 ? 'Reprendre' : 'Démarrer'}</span>
+            </>
           )}
+        </button>
 
-          {/* Bouton Terminer l'assemblage */}
+        {/* Ligne 2 : Réinitialiser et Terminer côte à côte sur mobile */}
+        <div className="grid grid-cols-2 gap-3 w-full">
+          {/* Bouton Réinitialiser */}
           <button
-            onClick={onFinishAssemblyClick}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-atelier-sauge hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer ml-auto sm:ml-0"
-            title="Valider la fin de ce run de puzzle"
+            onClick={handleReset}
+            disabled={seconds === 0}
+            className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-atelier-surface border border-atelier-border text-atelier-muted hover:text-atelier-text hover:bg-atelier-border/40 transition-colors shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            title="Remettre le chronomètre à zéro"
           >
-            <CheckCircle className="w-4 h-4" />
-            <span>Terminer l'assemblage</span>
+            <RotateCcw className="w-4 h-4" />
+            <span>Réinitialiser</span>
           </button>
 
-        </div>
-
-        {/* Option WakeLock (garder écran allumé) */}
-        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-atelier-muted">
-          <input
-            type="checkbox"
-            id="wake-lock-toggle"
-            checked={wakeLockEnabled}
-            onChange={e => setWakeLockEnabled(e.target.checked)}
-            className="rounded border-atelier-border text-atelier-primary focus:ring-atelier-primary cursor-pointer"
-          />
-          <label htmlFor="wake-lock-toggle" className="cursor-pointer select-none">
-            Empêcher la mise en veille de l'écran pendant le chronométrage
-          </label>
+          {/* Bouton Terminer */}
+          <button
+            onClick={handleFinish}
+            className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-atelier-sauge hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer"
+            title="Valider la fin de l'assemblage et enregistrer le chrono actuel"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Terminer</span>
+          </button>
         </div>
 
       </div>
 
-      {/* Modal Enregistrer la session */}
-      {showSaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-atelier-surface border border-atelier-border rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="font-serif text-lg font-bold text-atelier-text mb-2">
-              Enregistrer cette session d'assemblage
-            </h3>
-            <p className="text-sm text-atelier-muted mb-4">
-              Durée à enregistrer :{' '}
-              <strong className="text-atelier-text font-mono text-base">
-                {formatDigitalTime(displaySeconds)}
-              </strong>
-            </p>
+      {/* Option Écran toujours allumé (WakeLock) */}
+      <div className="mt-4 sm:mt-5 flex items-center justify-center gap-2 text-xs text-atelier-muted">
+        <input
+          type="checkbox"
+          id="wake-lock-toggle"
+          checked={wakeLockEnabled}
+          onChange={e => setWakeLockEnabled(e.target.checked)}
+          className="rounded border-atelier-border text-atelier-primary focus:ring-atelier-primary cursor-pointer w-4 h-4"
+        />
+        <label htmlFor="wake-lock-toggle" className="cursor-pointer select-none">
+          Garder l'écran allumé pendant le chronométrage
+        </label>
+      </div>
 
-            {saveError && (
-              <div className="p-2 mb-3 bg-red-100 text-red-700 text-xs rounded-lg">
-                {saveError}
-              </div>
-            )}
-
-            <div className="mb-4">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted mb-1">
-                Note facultative pour cette session
-              </label>
-              <input
-                type="text"
-                autoFocus
-                value={sessionNote}
-                onChange={e => setSessionNote(e.target.value)}
-                placeholder="ex. Tri des bordures et du ciel"
-                className="w-full px-3.5 py-2 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text text-sm focus:outline-none focus:border-atelier-primary"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowSaveModal(false)}
-                className="px-4 py-2 rounded-lg border border-atelier-border text-atelier-muted hover:text-atelier-text text-sm cursor-pointer"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSave}
-                disabled={isSaving}
-                className="px-5 py-2 rounded-lg bg-atelier-primary hover:bg-atelier-primaryHover text-white text-sm font-semibold cursor-pointer disabled:opacity-50"
-              >
-                {isSaving ? 'Enregistrement...' : 'Valider la session'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

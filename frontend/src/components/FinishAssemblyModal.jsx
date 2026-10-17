@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { X, Trophy, CheckCircle2 } from 'lucide-react';
-import { updateAssembly } from '../api';
-import { formatFriendlyDuration } from '../context/TimerContext';
+import { useTimer, formatFriendlyDuration } from '../context/TimerContext';
 import confetti from 'canvas-confetti';
 
 export default function FinishAssemblyModal({ isOpen, onClose, assembly, puzzle, onFinished }) {
   if (!isOpen || !assembly) return null;
 
+  const { getPuzzleTimer, finishPuzzleAssembly } = useTimer();
+  const timerInfo = getPuzzleTimer(puzzle?.id, assembly?.total_duration_seconds || 0);
+  const totalSeconds = timerInfo.seconds > 0 ? timerInfo.seconds : (assembly?.total_duration_seconds || 0);
+
   const [notes, setNotes] = useState(assembly.notes || '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-
-  const totalSeconds = assembly.total_duration_seconds || 0;
 
   const handleFinish = async (e) => {
     e.preventDefault();
@@ -19,11 +20,12 @@ export default function FinishAssemblyModal({ isOpen, onClose, assembly, puzzle,
     setError('');
 
     try {
-      await updateAssembly(assembly.id, {
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        notes: notes.trim() || null,
-      });
+      await finishPuzzleAssembly(
+        puzzle.id,
+        assembly.id,
+        notes.trim() || '',
+        assembly.total_duration_seconds || 0
+      );
 
       // Lancement des confettis de célébration
       try {
@@ -106,21 +108,22 @@ export default function FinishAssemblyModal({ isOpen, onClose, assembly, puzzle,
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-atelier-border text-atelier-muted hover:text-atelier-text text-sm cursor-pointer"
+              disabled={submitting}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-atelier-border text-atelier-muted hover:text-atelier-text text-sm font-semibold cursor-pointer text-center transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-atelier-sauge hover:bg-emerald-700 text-white text-sm font-bold shadow-xs cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-atelier-sauge hover:bg-emerald-700 text-white text-sm font-bold shadow-xs cursor-pointer disabled:opacity-50 transition-colors"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{submitting ? 'Validation...' : 'Valider comme terminé'}</span>
+              <span>{submitting ? 'Enregistrement...' : 'Terminer'}</span>
             </button>
           </div>
         </form>

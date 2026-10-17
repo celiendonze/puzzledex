@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import TimerWidget from '../components/TimerWidget';
 import SessionModal from '../components/SessionModal';
 import FinishAssemblyModal from '../components/FinishAssemblyModal';
-import { formatFriendlyDuration } from '../context/TimerContext';
+import ManualTimeModal from '../components/ManualTimeModal';
+import { useTimer, formatFriendlyDuration } from '../context/TimerContext';
 import { STATUS_LABELS } from '../components/PuzzleCard';
 import {
   ArrowLeft,
@@ -13,6 +14,7 @@ import {
   Trash2,
   Upload,
   Star,
+  Puzzle as PuzzleIcon,
   CheckCircle2,
   Calendar,
   Clock,
@@ -42,7 +44,11 @@ export default function PuzzleDetailPage({
   const [sessionToEdit, setSessionToEdit] = useState(null);
   const [targetAssemblyIdForSession, setTargetAssemblyIdForSession] = useState(null);
   const [finishModalOpen, setFinishModalOpen] = useState(false);
+  const [manualTimeModalOpen, setManualTimeModalOpen] = useState(false);
+  const [manualTimeTargetAssemblyId, setManualTimeTargetAssemblyId] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const { startPuzzleTimer } = useTimer();
 
   if (!puzzle) return null;
 
@@ -63,15 +69,16 @@ export default function PuzzleDetailPage({
 
   const statusInfo = STATUS_LABELS[puzzle.status] || STATUS_LABELS.in_stash;
 
-  // Lancer un nouvel assemblage
+  // Lancer un nouvel assemblage directement sans popup de confirmation
   const handleStartNewRun = async () => {
-    if (window.confirm(`Voulez-vous lancer un nouvel assemblage pour "${puzzle.title}" (Réalisation #${assemblies.length + 1}) ?`)) {
-      try {
-        await startNewAssembly(puzzle.id);
-        onRefresh();
-      } catch (err) {
-        alert(err.message || "Erreur lors du démarrage d'une nouvelle réalisation");
+    try {
+      const newRun = await startNewAssembly(puzzle.id);
+      if (newRun && newRun.id) {
+        startPuzzleTimer(puzzle.id, newRun.id, 0);
       }
+      onRefresh();
+    } catch (err) {
+      alert(err.message || "Erreur lors du démarrage d'une nouvelle réalisation");
     }
   };
 
@@ -227,6 +234,19 @@ export default function PuzzleDetailPage({
               <Plus className="w-4 h-4" />
               <span>{assemblies.length === 0 ? 'Commencer ce puzzle' : 'Recommencer ce puzzle'}</span>
             </button>
+
+            {/* Bouton pour ajouter un temps manuel */}
+            <button
+              onClick={() => {
+                setManualTimeTargetAssemblyId(null);
+                setManualTimeModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 bg-atelier-surface hover:bg-atelier-subtle text-atelier-text border border-atelier-border px-3.5 py-2.5 rounded-xl text-sm font-semibold shadow-2xs transition-colors cursor-pointer"
+              title="Ajouter un temps manuellement sans passer par le chronomètre"
+            >
+              <Clock className="w-4 h-4 text-atelier-primary" />
+              <span>+ Ajouter un temps</span>
+            </button>
           </div>
         </div>
       </div>
@@ -258,13 +278,25 @@ export default function PuzzleDetailPage({
                   ? "Toutes les réalisations précédentes sont terminées. Vous pouvez en démarrer une nouvelle pour battre votre record !"
                   : "Vous n'avez pas encore démarré l'assemblage de ce puzzle."}
               </p>
-              <button
-                onClick={handleStartNewRun}
-                className="inline-flex items-center gap-2 bg-atelier-primary hover:bg-atelier-primaryHover text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-xs cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Démarrer une session de chronomètre</span>
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+                <button
+                  onClick={handleStartNewRun}
+                  className="inline-flex items-center gap-2 bg-atelier-primary hover:bg-atelier-primaryHover text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Démarrer le chronomètre</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setManualTimeTargetAssemblyId(null);
+                    setManualTimeModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 bg-atelier-subtle hover:bg-atelier-border text-atelier-text border border-atelier-border px-4 py-2.5 rounded-xl text-sm font-semibold shadow-2xs cursor-pointer transition-colors"
+                >
+                  <Clock className="w-4 h-4 text-atelier-primary" />
+                  <span>Ajouter un temps manuel</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -532,33 +564,47 @@ export default function PuzzleDetailPage({
               </div>
               <div className="py-2 flex justify-between items-center">
                 <span className="text-atelier-muted">Difficulté</span>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map(v => (
-                    <Star
-                      key={v}
-                      className={`w-3.5 h-3.5 ${
-                        v <= (puzzle.difficulty || 0)
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-atelier-border'
-                      }`}
-                    />
-                  ))}
-                </div>
+                {puzzle.difficulty ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(v => (
+                        <PuzzleIcon
+                          key={v}
+                          className={`w-3.5 h-3.5 ${
+                            v <= puzzle.difficulty
+                              ? 'fill-amber-500 text-amber-500'
+                              : 'text-atelier-border'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs font-mono text-atelier-muted">({puzzle.difficulty}/5)</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-atelier-muted italic">Non renseignée</span>
+                )}
               </div>
               <div className="py-2 flex justify-between items-center">
-                <span className="text-atelier-muted">Votre note</span>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map(v => (
-                    <Star
-                      key={v}
-                      className={`w-3.5 h-3.5 ${
-                        v <= (puzzle.rating || 0)
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-atelier-border'
-                      }`}
-                    />
-                  ))}
-                </div>
+                <span className="text-atelier-muted">Avis</span>
+                {puzzle.rating ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(v => (
+                        <Star
+                          key={v}
+                          className={`w-3.5 h-3.5 ${
+                            v <= puzzle.rating
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-atelier-border'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs font-mono text-atelier-muted">({puzzle.rating}/5)</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-atelier-muted italic">Sans avis</span>
+                )}
               </div>
               <div className="py-2 flex justify-between items-center">
                 <span className="text-atelier-muted">Pièces manquantes</span>
@@ -572,7 +618,7 @@ export default function PuzzleDetailPage({
             {puzzle.tags && puzzle.tags.length > 0 && (
               <div className="pt-2 border-t border-atelier-border/50">
                 <span className="text-[11px] font-semibold text-atelier-muted block mb-1.5 uppercase tracking-wider">
-                  Étiquettes
+                  Tags
                 </span>
                 <div className="flex flex-wrap gap-1">
                   {puzzle.tags.map(t => (
@@ -610,6 +656,15 @@ export default function PuzzleDetailPage({
         onClose={() => setSessionModalOpen(false)}
         assemblyId={targetAssemblyIdForSession}
         sessionToEdit={sessionToEdit}
+        onSaved={onRefresh}
+      />
+
+      {/* Modal Ajout Temps Manuel */}
+      <ManualTimeModal
+        isOpen={manualTimeModalOpen}
+        onClose={() => setManualTimeModalOpen(false)}
+        puzzle={puzzle}
+        defaultAssemblyId={manualTimeTargetAssemblyId}
         onSaved={onRefresh}
       />
 

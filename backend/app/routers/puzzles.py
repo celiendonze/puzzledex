@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc, asc
 
 from app.database import get_db
-from app.models import Puzzle, PuzzleAssembly, PuzzleImage, Tag
+from app.models import Puzzle, PuzzleAssembly, PuzzleSession, PuzzleImage, Tag
 from app.schemas import PuzzleCreate, PuzzleUpdate, PuzzleListItemRead, PuzzleDetailRead
 from app.utils.image_processing import delete_image_files
 
@@ -134,13 +134,36 @@ def create_puzzle(payload: PuzzleCreate, db: Session = Depends(get_db)):
     db.add(puzzle)
     db.flush()
 
-    # Si le puzzle est créé directement en cours, créer la réalisation #1
-    if puzzle.status == "in_progress":
+    now = datetime.utcnow()
+    # Si un temps initial est fourni, enregistrer la réalisation #1 avec ce temps
+    if payload.initial_duration_seconds and payload.initial_duration_seconds > 0:
+        is_completed = puzzle.status == "completed"
+        assembly = PuzzleAssembly(
+            puzzle_id=puzzle.id,
+            run_number=1,
+            status="completed" if is_completed else "in_progress",
+            started_at=now,
+            completed_at=now if is_completed else None,
+            notes="Assemblage initial",
+        )
+        db.add(assembly)
+        db.flush()
+        session = PuzzleSession(
+            puzzle_id=puzzle.id,
+            assembly_id=assembly.id,
+            started_at=now,
+            ended_at=now,
+            duration_seconds=payload.initial_duration_seconds,
+            notes=None,
+        )
+        db.add(session)
+    # Sinon, si le puzzle est créé directement en cours sans durée, créer le run #1 vide
+    elif puzzle.status == "in_progress":
         assembly = PuzzleAssembly(
             puzzle_id=puzzle.id,
             run_number=1,
             status="in_progress",
-            started_at=datetime.utcnow()
+            started_at=now
         )
         db.add(assembly)
 

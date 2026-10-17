@@ -6,13 +6,15 @@ export const STATUS_LABELS = {
   in_progress: { label: 'En cours', bg: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' },
   completed: { label: 'Terminé', bg: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' },
   in_stash: { label: 'Dans la réserve', bg: 'bg-stone-100 text-stone-700 border-stone-300 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700' },
+  borrowed: { label: 'Emprunté', bg: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800' },
   wishlist: { label: "Liste d'envies", bg: 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800' },
   archived: { label: 'Archivé / Donné', bg: 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700' },
 };
 
 export default function PuzzleCard({ puzzle, onSelect, onQuickTimer }) {
-  const { puzzleId, isRunning, displaySeconds } = useTimer();
-  const isThisPuzzleActive = puzzleId === puzzle.id;
+  const { getPuzzleTimer } = useTimer();
+  const timerInfo = getPuzzleTimer(puzzle.id, puzzle.active_assembly_duration_seconds || 0);
+  const isThisPuzzleActive = timerInfo.isRunning;
   const statusInfo = STATUS_LABELS[puzzle.status] || STATUS_LABELS.in_stash;
 
   return (
@@ -102,7 +104,11 @@ export default function PuzzleCard({ puzzle, onSelect, onQuickTimer }) {
               </span>
             ) : (
               <span className="text-atelier-muted">
-                {puzzle.status === 'wishlist' ? "À acquérir" : "Non commencé"}
+                {puzzle.status === 'borrowed'
+                  ? 'Emprunté'
+                  : puzzle.status === 'wishlist'
+                  ? 'À acquérir'
+                  : 'Non commencé'}
               </span>
             )}
           </div>
@@ -114,24 +120,22 @@ export default function PuzzleCard({ puzzle, onSelect, onQuickTimer }) {
                 e.stopPropagation();
                 onQuickTimer(puzzle);
               }}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border transition-all ${
                 isThisPuzzleActive
-                  ? isRunning
-                    ? 'bg-atelier-saugeLight text-atelier-sauge border-atelier-sauge animate-pulse'
-                    : 'bg-atelier-amberLight text-atelier-amber border-atelier-amber'
+                  ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 animate-pulse'
                   : 'bg-atelier-subtle text-atelier-text hover:bg-atelier-border border-atelier-border'
               }`}
-              title={isThisPuzzleActive ? (isRunning ? 'Mettre en pause' : 'Reprendre') : 'Lancer le chronomètre'}
+              title={isThisPuzzleActive ? 'Chronomètre en cours (cliquer pour voir la fiche)' : 'Ouvrir la fiche et chronométrer'}
             >
               {isThisPuzzleActive ? (
                 <>
-                  {isRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                  <span className="font-mono">{formatDigitalTime(displaySeconds)}</span>
+                  <Pause className="w-3 h-3 fill-current" />
+                  <span className="font-mono">{formatDigitalTime(timerInfo.seconds)}</span>
                 </>
               ) : (
                 <>
                   <Timer className="w-3 h-3" />
-                  <span>Chrono</span>
+                  <span>{timerInfo.seconds > 0 ? formatDigitalTime(timerInfo.seconds) : 'Chrono'}</span>
                 </>
               )}
             </button>

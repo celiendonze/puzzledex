@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#BC5A36"/>
+  <!-- Pièce centrale -->
+  <path d="M 170 170 
+           H 220 C 220 130 292 130 292 170 
+           H 342 V 220 C 382 220 382 292 342 292 
+           V 342 H 292 C 292 312 220 312 220 342 
+           H 170 V 292 C 200 292 200 220 170 220 Z" 
+        fill="#FBF7F0"/>
+  <!-- Cadran chrono au centre -->
+  <circle cx="256" cy="256" r="42" stroke="#BC5A36" stroke-width="12" fill="none"/>
+  <line x1="256" y1="256" x2="256" y2="230" stroke="#BC5A36" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="278" y2="256" stroke="#BC5A36" stroke-width="12" stroke-linecap="round"/>
+</svg>

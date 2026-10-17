@@ -1,68 +1,52 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { createSession } from '../api';
+import { createSession, updateAssembly } from '../api';
 
 const TimerContext = createContext();
 
-const STORAGE_KEY = 'puzzledex_active_timer';
+const STORAGE_KEY = 'puzzledex_puzzle_timers';
 
 export function TimerProvider({ children }) {
-  // État du timer
-  const [timerState, setTimerState] = useState(() => {
+  // Map des timers par puzzleId : { [puzzleId]: { assemblyId, accumulatedSeconds, lastResumeTime, isRunning } }
+  const [timers, setTimers] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return {
-      puzzleId: null,
-      puzzleTitle: null,
-      assemblyId: null,
-      startTime: null,         // timestamp en ms
-      accumulatedSeconds: 0,   // secondes accumulées avant la dernière reprise
-      lastResumeTime: null,    // timestamp en ms de la reprise
-      isRunning: false,
-    };
+    return {};
   });
 
-  const [displaySeconds, setDisplaySeconds] = useState(0);
   const [wakeLockEnabled, setWakeLockEnabled] = useState(true);
+  const [tick, setTick] = useState(0);
   const wakeLockRef = useRef(null);
 
   // Synchronisation avec localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(timerState));
-  }, [timerState]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(timers));
+  }, [timers]);
 
-  // Calcul en direct des secondes écoulées
+  // Vérifier si au moins un puzzle a son chronomètre actif
+  const hasRunningTimer = Object.values(timers).some(t => t.isRunning);
+
+  // Horloge de rafraîchissement (chaque seconde quand au moins un chrono tourne)
   useEffect(() => {
-    const updateElapsed = () => {
-      if (!timerState.puzzleId) {
-        setDisplaySeconds(0);
-        return;
-      }
-      if (timerState.isRunning && timerState.lastResumeTime) {
-        const currentSegment = Math.floor((Date.now() - timerState.lastResumeTime) / 1000);
-        setDisplaySeconds(timerState.accumulatedSeconds + currentSegment);
-      } else {
-        setDisplaySeconds(timerState.accumulatedSeconds);
-      }
-    };
-
-    updateElapsed();
-    const interval = setInterval(updateElapsed, 500);
+    if (!hasRunningTimer) return;
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 500);
     return () => clearInterval(interval);
-  }, [timerState]);
+  }, [hasRunningTimer]);
 
-  // Gestion du WakeLock (écran toujours allumé)
+  // Gestion du WakeLock (écran toujours allumé sur mobile/tablette)
   useEffect(() => {
     async function requestWakeLock() {
-      if ('wakeLock' in navigator && timerState.isRunning && wakeLockEnabled) {
+      if ('wakeLock' in navigator && hasRunningTimer && wakeLockEnabled) {
         try {
           wakeLockRef.current = await navigator.wakeLock.request('screen');
         } catch (_) {}
       }
     }
 
-    if (timerState.isRunning && wakeLockEnabled) {
+    if (hasRunningTimer && wakeLockEnabled) {
       requestWakeLock();
     } else {
       if (wakeLockRef.current) {
@@ -72,7 +56,7 @@ export function TimerProvider({ children }) {
     }
 
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && timerState.isRunning && wakeLockEnabled) {
+      if (document.visibilityState === 'visible' && hasRunningTimer && wakeLockEnabled) {
         requestWakeLock();
       }
     };
@@ -85,102 +69,145 @@ export function TimerProvider({ children }) {
         wakeLockRef.current = null;
       }
     };
-  }, [timerState.isRunning, wakeLockEnabled]);
+  }, [hasRunningTimer, wakeLockEnabled]);
 
-  // Actions
-  const startTimer = (puzzleId, puzzleTitle, assemblyId) => {
-    // Si c'est déjà ce puzzle qui tourne, reprendre
-    if (timerState.puzzleId === puzzleId && timerState.assemblyId === assemblyId) {
-      if (!timerState.isRunning) {
-        resumeTimer();
+  // Récupérer le temps et l'état courant pour un puzzle donné
+  const getPuzzleTimer = (puzzleId, fallbackInitialSeconds = 0) => {
+    const pTimer = timers[puzzleId];
+    if (!pTimer) {
+      return {
+        seconds: fallbackInitialSeconds,
+        isRunning: false,
+        hasTimerInMemory: false,
+      };
+    }
+
+    let currentSec = pTimer.accumulatedSeconds || 0;
+    if (pTimer.isRunning && pTimer.lastResumeTime) {
+      const segment = Math.floor((Date.now() - pTimer.lastResumeTime) / 1000);
+      currentSec += segment;
+    }
+
+    return {
+      seconds: currentSec,
+      isRunning: Boolean(pTimer.isRunning),
+      hasTimerInMemory: true,
+    };
+  };
+
+  // Démarrer ou reprendre le chronomètre pour un puzzle
+  const startPuzzleTimer = (puzzleId, assemblyId, initialSeconds = 0) => {
+    const now = Date.now();
+    setTimers(prev => {
+      const existing = prev[puzzleId];
+      if (existing) {
+        return {
+          ...prev,
+          [puzzleId]: {
+            ...existing,
+            assemblyId,
+            lastResumeTime: now,
+            isRunning: true,
+          },
+        };
       }
-      return;
-    }
-
-    const now = Date.now();
-    setTimerState({
-      puzzleId,
-      puzzleTitle,
-      assemblyId,
-      startTime: now,
-      accumulatedSeconds: 0,
-      lastResumeTime: now,
-      isRunning: true,
+      return {
+        ...prev,
+        [puzzleId]: {
+          assemblyId,
+          accumulatedSeconds: initialSeconds,
+          lastResumeTime: now,
+          isRunning: true,
+        },
+      };
     });
   };
 
-  const pauseTimer = () => {
-    if (!timerState.isRunning) return;
+  // Mettre en pause le chronomètre d'un puzzle (conserve le temps en mémoire)
+  const pausePuzzleTimer = (puzzleId) => {
     const now = Date.now();
-    const currentSegment = Math.floor((now - (timerState.lastResumeTime || now)) / 1000);
-    setTimerState(prev => ({
-      ...prev,
-      accumulatedSeconds: prev.accumulatedSeconds + currentSegment,
-      lastResumeTime: null,
-      isRunning: false,
-    }));
-  };
+    setTimers(prev => {
+      const existing = prev[puzzleId];
+      if (!existing || !existing.isRunning) return prev;
 
-  const resumeTimer = () => {
-    if (timerState.isRunning) return;
-    setTimerState(prev => ({
-      ...prev,
-      lastResumeTime: Date.now(),
-      isRunning: true,
-    }));
-  };
-
-  const resetTimer = () => {
-    setTimerState({
-      puzzleId: null,
-      puzzleTitle: null,
-      assemblyId: null,
-      startTime: null,
-      accumulatedSeconds: 0,
-      lastResumeTime: null,
-      isRunning: false,
+      const segment = Math.floor((now - (existing.lastResumeTime || now)) / 1000);
+      return {
+        ...prev,
+        [puzzleId]: {
+          ...existing,
+          accumulatedSeconds: (existing.accumulatedSeconds || 0) + segment,
+          lastResumeTime: null,
+          isRunning: false,
+        },
+      };
     });
-    setDisplaySeconds(0);
   };
 
-  const recordAndSaveSession = async (notes = '') => {
-    // Calculer la durée finale
-    let finalSeconds = timerState.accumulatedSeconds;
-    if (timerState.isRunning && timerState.lastResumeTime) {
-      finalSeconds += Math.floor((Date.now() - timerState.lastResumeTime) / 1000);
+  // Réinitialiser le chronomètre d'un puzzle à zéro
+  const resetPuzzleTimer = (puzzleId) => {
+    setTimers(prev => {
+      const existing = prev[puzzleId];
+      if (!existing) return prev;
+      return {
+        ...prev,
+        [puzzleId]: {
+          ...existing,
+          accumulatedSeconds: 0,
+          lastResumeTime: null,
+          isRunning: false,
+        },
+      };
+    });
+  };
+
+  // Terminer l'assemblage : enregistre le temps en cours dans la base de données et clôture la réalisation
+  const finishPuzzleAssembly = async (puzzleId, assemblyId, notes = '') => {
+    const currentTimer = getPuzzleTimer(puzzleId, 0);
+    const finalSeconds = currentTimer.seconds;
+
+    // Si du temps a été chronométré, on l'enregistre comme session d'assemblage
+    if (finalSeconds > 0) {
+      const now = new Date();
+      const startedAt = new Date(now.getTime() - finalSeconds * 1000).toISOString();
+      const endedAt = now.toISOString();
+
+      await createSession(assemblyId, {
+        started_at: startedAt,
+        ended_at: endedAt,
+        duration_seconds: finalSeconds,
+        notes: notes || null,
+      });
     }
 
-    if (finalSeconds <= 0) {
-      throw new Error("La durée de la session doit être supérieure à 0 seconde.");
-    }
-
-    const startedAt = new Date(timerState.startTime || Date.now() - finalSeconds * 1000).toISOString();
-    const endedAt = new Date().toISOString();
-
-    const created = await createSession(timerState.assemblyId, {
-      started_at: startedAt,
-      ended_at: endedAt,
-      duration_seconds: finalSeconds,
+    // Clôturer la réalisation comme terminée
+    const updated = await updateAssembly(assemblyId, {
+      status: 'completed',
+      completed_at: new Date().toISOString(),
       notes: notes || null,
     });
 
-    // Remettre le timer à zéro pour la prochaine session
-    resetTimer();
-    return created;
+    // Supprimer le timer en mémoire pour ce puzzle
+    setTimers(prev => {
+      const copy = { ...prev };
+      delete copy[puzzleId];
+      return copy;
+    });
+
+    return updated;
   };
 
   return (
     <TimerContext.Provider
       value={{
-        ...timerState,
-        displaySeconds,
+        timers,
+        tick,
         wakeLockEnabled,
         setWakeLockEnabled,
-        startTimer,
-        pauseTimer,
-        resumeTimer,
-        resetTimer,
-        recordAndSaveSession,
+        getPuzzleTimer,
+        startPuzzleTimer,
+        pausePuzzleTimer,
+        resetPuzzleTimer,
+        finishPuzzleAssembly,
       }}
     >
       {children}
@@ -192,7 +219,7 @@ export function useTimer() {
   return useContext(TimerContext);
 }
 
-// Utilitaires de formatage partagés
+// Utilitaires de formatage
 export function formatDigitalTime(totalSeconds) {
   const sec = Math.max(0, Math.floor(totalSeconds || 0));
   const h = Math.floor(sec / 3600);

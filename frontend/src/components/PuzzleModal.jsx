@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Star } from 'lucide-react';
+import { X, Upload, Star, Puzzle as PuzzleIcon } from 'lucide-react';
 import { uploadImage } from '../api';
 
 export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, availableBrands = [] }) {
@@ -11,13 +11,15 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
     piece_count: 1000,
     status: 'in_stash',
     dimensions: '',
-    difficulty: 3,
-    rating: 0,
+    difficulty: null,
+    rating: null,
     missing_pieces: 0,
     notes: '',
     tags: '',
   });
 
+  const [initialHours, setInitialHours] = useState('');
+  const [initialMinutes, setInitialMinutes] = useState('');
   const [initialImageFile, setInitialImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -31,12 +33,14 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
         piece_count: puzzleToEdit.piece_count || 1000,
         status: puzzleToEdit.status || 'in_stash',
         dimensions: puzzleToEdit.dimensions || '',
-        difficulty: puzzleToEdit.difficulty || 3,
-        rating: puzzleToEdit.rating || 0,
+        difficulty: puzzleToEdit.difficulty ?? null,
+        rating: puzzleToEdit.rating ?? null,
         missing_pieces: puzzleToEdit.missing_pieces || 0,
         notes: puzzleToEdit.notes || '',
         tags: puzzleToEdit.tags ? puzzleToEdit.tags.map(t => t.name).join(', ') : '',
       });
+      setInitialHours('');
+      setInitialMinutes('');
       setInitialImageFile(null);
       setImagePreview(puzzleToEdit.cover_image_url || null);
     } else {
@@ -46,12 +50,14 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
         piece_count: 1000,
         status: 'in_stash',
         dimensions: '',
-        difficulty: 3,
-        rating: 0,
+        difficulty: null,
+        rating: null,
         missing_pieces: 0,
         notes: '',
         tags: '',
       });
+      setInitialHours('');
+      setInitialMinutes('');
       setInitialImageFile(null);
       setImagePreview(null);
     }
@@ -83,6 +89,10 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
     setError('');
 
     try {
+      const h = parseInt(initialHours, 10) || 0;
+      const m = parseInt(initialMinutes, 10) || 0;
+      const initialSec = (h * 3600) + (m * 60);
+
       const payload = {
         title: formData.title.trim(),
         brand: formData.brand.trim() || null,
@@ -96,6 +106,7 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
         tags: formData.tags
           ? formData.tags.split(',').map(t => t.trim()).filter(Boolean)
           : [],
+        initial_duration_seconds: !isEditing && (formData.status === 'completed' || formData.status === 'in_progress') && initialSec > 0 ? initialSec : undefined,
       };
 
       const savedPuzzle = await onSave(payload, puzzleToEdit ? puzzleToEdit.id : null);
@@ -119,17 +130,29 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
       <div className="bg-atelier-surface border border-atelier-border rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl my-8 overflow-hidden">
         
-        {/* En-tête modal */}
-        <div className="px-6 py-4 border-b border-atelier-border flex items-center justify-between bg-atelier-subtle/50">
-          <h2 className="font-serif text-xl font-bold text-atelier-text">
-            {isEditing ? 'Modifier le puzzle' : 'Ajouter un nouveau puzzle'}
+        {/* En-tête modal avec bouton Créer / Enregistrer directement accessible en haut */}
+        <div className="px-5 sm:px-6 py-3.5 border-b border-atelier-border flex items-center justify-between bg-atelier-subtle/50 gap-3">
+          <h2 className="font-serif text-lg sm:text-xl font-bold text-atelier-text truncate">
+            {isEditing ? 'Modifier le puzzle' : 'Nouveau puzzle'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-atelier-muted hover:text-atelier-text p-1 rounded-lg hover:bg-atelier-border/50"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="px-4 py-1.5 rounded-lg bg-atelier-primary hover:bg-atelier-primaryHover text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {submitting ? 'Enregistrement...' : isEditing ? 'Enregistrer' : 'Créer'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-atelier-muted hover:text-atelier-text p-1.5 rounded-lg hover:bg-atelier-border/50"
+              title="Fermer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Corps formulaire */}
@@ -191,8 +214,8 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
             </div>
           </div>
 
-          {/* Statut & Dimensions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Statut, Dimensions & Pièces manquantes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted mb-1">
                 Statut
@@ -200,12 +223,13 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
               <select
                 value={formData.status}
                 onChange={e => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text focus:outline-none focus:border-atelier-primary"
+                className="w-full px-3 py-2 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text focus:outline-none focus:border-atelier-primary text-sm"
               >
-                <option value="in_stash">Dans la réserve (non commencé)</option>
+                <option value="in_stash">Dans la réserve</option>
                 <option value="in_progress">En cours d'assemblage</option>
                 <option value="completed">Terminé</option>
-                <option value="wishlist">Liste d'envies (à acheter)</option>
+                <option value="borrowed">Emprunté</option>
+                <option value="wishlist">Liste d'envies</option>
                 <option value="archived">Archivé / Donné</option>
               </select>
             </div>
@@ -219,59 +243,8 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
                 value={formData.dimensions}
                 onChange={e => setFormData({ ...formData, dimensions: e.target.value })}
                 placeholder="ex. 70 x 50 cm"
-                className="w-full px-3.5 py-2 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text focus:outline-none focus:border-atelier-primary"
+                className="w-full px-3 py-2 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text focus:outline-none focus:border-atelier-primary text-sm"
               />
-            </div>
-          </div>
-
-          {/* Évaluations & Pièces manquantes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted mb-1">
-                Difficulté (1 à 5)
-              </label>
-              <div className="flex gap-1 items-center mt-1">
-                {[1, 2, 3, 4, 5].map(val => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, difficulty: val })}
-                    className="p-1 focus:outline-none cursor-pointer"
-                  >
-                    <Star
-                      className={`w-5 h-5 ${
-                        val <= formData.difficulty
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-atelier-muted/40'
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted mb-1">
-                Votre avis (1 à 5)
-              </label>
-              <div className="flex gap-1 items-center mt-1">
-                {[1, 2, 3, 4, 5].map(val => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, rating: val === formData.rating ? 0 : val })}
-                    className="p-1 focus:outline-none cursor-pointer"
-                  >
-                    <Star
-                      className={`w-5 h-5 ${
-                        val <= formData.rating
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-atelier-muted/40'
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div>
@@ -283,8 +256,135 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
                 min="0"
                 value={formData.missing_pieces}
                 onChange={e => setFormData({ ...formData, missing_pieces: e.target.value })}
-                className="w-full px-3 py-1.5 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text focus:outline-none focus:border-atelier-primary font-mono text-sm"
+                className="w-full px-3 py-2 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text focus:outline-none focus:border-atelier-primary font-mono text-sm"
               />
+            </div>
+          </div>
+
+          {/* Saisie de temps optionnel lors de la création d'un puzzle déjà commencé ou terminé */}
+          {!isEditing && (formData.status === 'completed' || formData.status === 'in_progress') && (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300 mb-1.5">
+                {formData.status === 'completed' ? "Temps d'assemblage (optionnel)" : "Temps déjà passé (optionnel)"}
+              </label>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    value={initialHours}
+                    onChange={e => setInitialHours(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-3 py-1.5 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text text-sm font-mono text-center focus:outline-none focus:border-atelier-primary"
+                  />
+                  <span className="text-xs text-atelier-muted font-medium">h</span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={initialMinutes}
+                    onChange={e => setInitialMinutes(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-3 py-1.5 rounded-lg bg-atelier-bg border border-atelier-border text-atelier-text text-sm font-mono text-center focus:outline-none focus:border-atelier-primary"
+                  />
+                  <span className="text-xs text-atelier-muted font-medium">min</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-atelier-muted mt-1.5">
+                {formData.status === 'completed'
+                  ? 'Permet de comptabiliser directement ce temps dans vos statistiques.'
+                  : 'Ce temps sera ajouté comme première session de ce puzzle.'}
+              </p>
+            </div>
+          )}
+
+          {/* Évaluations : Difficulté & Avis */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-atelier-subtle/50 border border-atelier-border">
+            {/* Difficulté */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted">
+                  Difficulté (1 à 5)
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-semibold text-atelier-text">
+                    {formData.difficulty ? `${formData.difficulty}/5` : <span className="text-atelier-muted font-normal text-[11px]">Non renseignée</span>}
+                  </span>
+                  {formData.difficulty && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, difficulty: null })}
+                      className="text-[11px] text-atelier-muted hover:text-atelier-text underline cursor-pointer"
+                    >
+                      Effacer
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {[1, 2, 3, 4, 5].map(val => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, difficulty: val === formData.difficulty ? null : val })}
+                    className="p-1.5 focus:outline-none cursor-pointer rounded-lg hover:bg-atelier-border/50 transition-colors"
+                    title={`Difficulté ${val}/5`}
+                  >
+                    <PuzzleIcon
+                      className={`w-5 h-5 transition-transform active:scale-110 ${
+                        formData.difficulty && val <= formData.difficulty
+                          ? 'fill-amber-500 text-amber-500'
+                          : 'text-atelier-muted/30 hover:text-atelier-muted'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Avis */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted">
+                  Avis (1 à 5)
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-semibold text-atelier-text">
+                    {formData.rating && formData.rating > 0 ? `${formData.rating}/5` : <span className="text-atelier-muted font-normal text-[11px]">Sans avis</span>}
+                  </span>
+                  {formData.rating && formData.rating > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, rating: null })}
+                      className="text-[11px] text-atelier-muted hover:text-atelier-text underline cursor-pointer"
+                    >
+                      Effacer
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {[1, 2, 3, 4, 5].map(val => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, rating: val === formData.rating ? null : val })}
+                    className="p-1.5 focus:outline-none cursor-pointer rounded-lg hover:bg-atelier-border/50 transition-colors"
+                    title={`Avis ${val}/5`}
+                  >
+                    <Star
+                      className={`w-5 h-5 transition-transform active:scale-110 ${
+                        formData.rating && val <= formData.rating
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-atelier-muted/30 hover:text-atelier-muted'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -317,10 +417,10 @@ export default function PuzzleModal({ isOpen, onClose, onSave, puzzleToEdit, ava
             </div>
           )}
 
-          {/* Étiquettes / Tags */}
+          {/* Tags */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-atelier-muted mb-1">
-              Étiquettes (séparées par des virgules)
+              Tags (séparés par des virgules)
             </label>
             <input
               type="text"

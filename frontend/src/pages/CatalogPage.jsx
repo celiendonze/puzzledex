@@ -7,6 +7,7 @@ const STATUS_FILTERS = [
   { id: 'in_progress', label: 'En cours' },
   { id: 'in_stash', label: 'Dans la réserve' },
   { id: 'completed', label: 'Terminé' },
+  { id: 'borrowed', label: 'Emprunté' },
   { id: 'wishlist', label: "Liste d'envies" },
   { id: 'archived', label: 'Archivé' },
 ];
@@ -14,7 +15,8 @@ const STATUS_FILTERS = [
 const PIECE_COUNT_RANGES = [
   { id: 'all', label: 'Toutes tailles' },
   { id: '<500', label: '< 500 pcs', min: 0, max: 499 },
-  { id: '500-999', label: '500 - 999 pcs', min: 500, max: 999 },
+  { id: '500', label: '500 pcs', min: 500, max: 500 },
+  { id: '501-999', label: '501 - 999 pcs', min: 501, max: 999 },
   { id: '1000', label: '1 000 pcs', min: 1000, max: 1000 },
   { id: '1500+', label: '1 500+ pcs', min: 1500, max: 999999 },
 ];
@@ -100,7 +102,7 @@ export default function CatalogPage({
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Rechercher par titre, marque ou étiquette..."
+              placeholder="Rechercher par titre, marque ou tag..."
               className="w-full pl-10 pr-4 py-2 rounded-xl bg-atelier-bg border border-atelier-border text-atelier-text text-sm focus:outline-none focus:border-atelier-primary"
             />
           </div>
@@ -223,7 +225,7 @@ export default function CatalogPage({
           <p className="text-sm text-atelier-muted max-w-md mx-auto mb-6">
             {searchTerm || selectedStatus !== 'all' || selectedRange !== 'all' || selectedBrand
               ? 'Aucun puzzle ne correspond à vos filtres de recherche.'
-              : 'Votre carnet de puzzles est encore vide. Ajoutez votre premier puzzle pour commencer à chronométrer vos réalisations !'}
+              : 'Votre collection de puzzles est encore vide. Ajoutez votre premier puzzle pour commencer à chronométrer vos réalisations !'}
           </p>
           <button
             onClick={onOpenCreateModal}

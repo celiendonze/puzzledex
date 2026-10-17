@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { TimerProvider, useTimer } from './context/TimerContext';
 import Header from './components/Header';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 import CatalogPage from './pages/CatalogPage';
 import PuzzleDetailPage from './pages/PuzzleDetailPage';
 import StatsPage from './pages/StatsPage';
@@ -24,7 +25,7 @@ function AppContent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [puzzleToEdit, setPuzzleToEdit] = useState(null);
 
-  const { startTimer } = useTimer();
+  const { startPuzzleTimer } = useTimer();
 
   // Chargement des puzzles
   const fetchPuzzles = async () => {
@@ -68,7 +69,7 @@ function AppContent() {
   // Action rapide depuis la carte : démarrer / reprendre le timer et aller sur la fiche
   const handleQuickTimer = (puzzle) => {
     if (puzzle.active_assembly_id) {
-      startTimer(puzzle.id, puzzle.title, puzzle.active_assembly_id);
+      startPuzzleTimer(puzzle.id, puzzle.active_assembly_id);
     }
     handleSelectPuzzle(puzzle.id);
   };
@@ -91,6 +92,9 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-atelier-bg text-atelier-text flex flex-col font-sans transition-colors duration-200">
       
+      {/* Bannière d'installation PWA mobile */}
+      <PwaInstallPrompt />
+
       {/* Barre supérieure */}
       <Header
         currentView={currentView}

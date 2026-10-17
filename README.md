@@ -1,6 +1,6 @@
 # 🧩 PuzzleDex
 
-> **Carnet de bord & Chronomètre d'assemblage de puzzles en réseau local.**  
+> **Collection & Chronomètre d'assemblage de puzzles en réseau local.**  
 > Interface élégante inspirée de **L'Atelier** (Mode Jour lin/crème & Mode Soir boisé/espresso), 100% en français, sans compte ni inscription, avec base de données fichier ultra-facile à exporter et déployable en une commande Docker.
 
 ---

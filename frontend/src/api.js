@@ -87,6 +87,13 @@ export function deleteAssembly(assemblyId) {
   return request(`/assemblies/${assemblyId}`, { method: 'DELETE' });
 }
 
+export function addManualTime(puzzleId, data) {
+  return request(`/puzzles/${puzzleId}/manual-time`, {
+    method: 'POST',
+    body: data,
+  });
+}
+
 // --- SESSIONS ---
 export function createSession(assemblyId, data) {
   return request(`/assemblies/${assemblyId}/sessions`, {
